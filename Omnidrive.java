@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode.hinsin;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Mecanum", group="Crimson")
-public class Mecanum extends LinearOpMode {
+@TeleOp(name="Omnidrive", group="Crimson")
+public class Omnidrive extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -17,12 +16,10 @@ public class Mecanum extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor Lift = null;
     
-    // public Servo    testServo    = null;
+    public Servo    testServo    = null;
     public Servo    forkliftServoLeft    = null;
-
-    private int encoderZero = 0;
+    public Servo    forkliftServoRight    = null;
 
     @Override
     public void runOpMode() {
@@ -33,22 +30,13 @@ public class Mecanum extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "BackLeft");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "FrontRight");
         rightBackDrive = hardwareMap.get(DcMotor.class, "BackRight");
-        Lift = hardwareMap.get(DcMotor.class, "Lift");
         
-        // testServo = hardwareMap.get(Servo.class, "TestServo");
+       // testServo = hardwareMap.get(Servo.class, "TestServo");
         forkliftServoLeft = hardwareMap.get(Servo.class, "ForkliftLeft");
+        //forkliftServoRight = hardwareMap.get(Servo.class, "ForkliftRight");
         
         double ForkliftOpen = 0.0;
-        double ForkliftClosed = 0.5;
-        float switchStateCounter = 0;
-        int liftEncoderMax = -7900;
-        
-        boolean driveSlow = false;
-        
-        
-        // Lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        
-        // testServo = hardwareMap.get(Servo.class, "TestServo");
+        double ForkliftClosed = 0.0;
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -60,14 +48,13 @@ public class Mecanum extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        // leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        // leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        // rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        // rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
-        // telemetry.addData("Button", limitButton.getState());
         telemetry.update();
 
         waitForStart();
@@ -80,79 +67,25 @@ public class Mecanum extends LinearOpMode {
             //AreaRectangle(4, 5);
 
             // Get gamepad stick values
-            double driveLeft   = gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            double driveForward   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double driveSideways =  gamepad1.left_stick_x;
             double turn     =  gamepad1.right_stick_x;
-            double driveRight     =  gamepad1.right_stick_y;
             
-            if (driveSlow)
-            {
-                driveLeft /=3;
-                driveSideways /= 3;
-            }
-            
-            // boolean switchState = limitButton.getState();
-            
-            // if (!switchState)
-            // {
-            //   /* switchStateCounter++;
-            // } else
-            // {
-            //     switchStateCounter = 0;*/
-            //     encoderZero = Lift.getCurrentPosition();
-            // }
-            
-            
-            // new Thread(new Runnable() {
-            //     public void run() {
-            //         sleep(500);
-            //     }
-            //     });
-            
-            
-            if ((gamepad1.a && (Lift.getCurrentPosition() - encoderZero > liftEncoderMax)) || gamepad1.dpad_up){
-                //up
-                Lift.setPower(-1.0);
-            } else if ((gamepad1.b && Lift.getCurrentPosition() - encoderZero <= 0) || gamepad1.dpad_down){ // && switchStateCounter < 9
-                //down
-                // 4882
-                Lift.setPower(1.0);
-            } else
-            {
-                Lift.setPower(0.0);
-            }
-            
-            if (gamepad1.y){
-                // open 0.49 
-                forkliftServoLeft.setPosition(0.49);
-                // forkliftServoLeft.setPosition(0.5);
-                // forkliftServoRight.setPosition(0.95);
+            if (gamepad1.x){
+                forkliftServoLeft.setPosition(ForkliftOpen);
+                //forkliftServoRight.setPosition(-ForkliftOpen);
             }
             if (gamepad1.x){
-                // close 0.89
-                forkliftServoLeft.setPosition(0.89);
-                // forkliftServoLeft.setPosition(0.47);
-                // forkliftServoRight.setPosition(0.66);
+                forkliftServoLeft.setPosition(ForkliftClosed);
+               // forkliftServoRight.setPosition(-ForkliftClosed);
             }
-            if (gamepad1.left_bumper){
-               
-                encoderZero = Lift.getCurrentPosition();
-            }
-            
-            if (gamepad1.right_bumper || Lift.getCurrentPosition() - encoderZero < liftEncoderMax * 0.65){
-              driveSlow = true;
-            } else {
-                driveSlow = false;
-            }
-            
-            
             
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = driveLeft - driveSideways - turn;
-            double rightFrontPower = -driveLeft - driveSideways - turn;
-            double leftBackPower   = driveLeft + driveSideways - turn;
-            double rightBackPower  = -driveLeft + driveSideways - turn;
+            double leftFrontPower  = -driveForward - driveSideways - turn;
+            double rightFrontPower = -driveForward + driveSideways + turn;
+            double leftBackPower   = -driveForward + driveSideways - turn;
+            double rightBackPower  = -driveForward - driveSideways + turn;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -167,33 +100,23 @@ public class Mecanum extends LinearOpMode {
                 leftBackPower   /= max;
                 rightBackPower  /= max;
             }
-            
-            // int drivePercent = 3;
-            // if (driveSlow) {
-            //     leftFrontPower  /= drivePercent;
-            //     rightFrontPower /= drivePercent;
-            //     leftBackPower   /= drivePercent;
-            //     rightBackPower  /= drivePercent;
-            // }
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
+            
+            
+            
 
             // Show the elapsed game time and wheel power.
-            int position = Lift.getCurrentPosition() - encoderZero;
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Hand Servo Position", "%4.2f", forkliftServoLeft.getPosition());
-            telemetry.addData("Hand Servo Position", "%4.2f", switchStateCounter);
-            // telemetry.addData("Right Servo Position", "%4.2f", forkliftServoRight.getPosition());
-            telemetry.addData("Encoder Position", position);
-            telemetry.addData("Dpad down", gamepad1.dpad_down);
+            telemetry.addData("Left Servo Position", "%4.2f", forkliftServoLeft.getPosition());
+         //   telemetry.addData("Right Servo Position", "%4.2f", forkliftServoRight.getPosition());
             telemetry.update();
-            sleep(1);
         }
     }
     
